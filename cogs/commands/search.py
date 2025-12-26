@@ -1,5 +1,7 @@
+import aiohttp
 import discord
 
+from datetime import datetime
 from discord.ext import commands
 
 from utils import safe_functions as sf
@@ -20,15 +22,25 @@ class Search(commands.Cog):
                 description="I couldn't find the term you're looking for"
             ))
 
+        if isinstance(definitions, aiohttp.ClientResponseError):
+            return await sf.safe_send(interaction, embed=em.error_embed(
+                title=f'HTTP Exception {definitions.status}',
+                description=definitions.message
+            ))
+
         embeds = []
         for definition in definitions:
+            parsed_definition = definition['definition'].replace('[', '').replace(']', '')
+            parsed_example = definition['example'].replace('[', '').replace(']', '')
+            parsed_date = datetime.strftime(datetime.fromisoformat(definition['written_on']), '%B %d, %Y')
+
             embed = em.default_embed(
                 title=definition['word'],
                 url=definition['permalink'],
-                description=definition['definition'].replace('[', '').replace(']', '')
+                description=parsed_definition
             )
-            embed.add_field(name='Example', value=definition['example'].replace('[', '').replace(']', ''))
-            embed.set_footer(text=f'Created by {definition['author']} on {definition['written_on']}')
+            embed.add_field(name='Example', value=parsed_example)
+            embed.set_footer(text=f'Created by {definition['author']} on {parsed_date}')
 
             embeds.append(embed)
 

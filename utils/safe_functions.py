@@ -1,8 +1,6 @@
 import aiohttp
 import discord
 
-from discord.ext import commands
-
 session = None
 bot = None
 
@@ -21,7 +19,7 @@ async def safe_get(term: str):
             data = await response.json()
             return data['list']
     except aiohttp.ClientResponseError as e:
-        bot.dispatch('client_response_error', e)
+        return e
 
 async def safe_send(destination: discord.Interaction | discord.abc.Messageable, **kwargs):
     permissions = None
